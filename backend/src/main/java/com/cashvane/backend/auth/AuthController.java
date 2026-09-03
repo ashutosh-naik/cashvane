@@ -8,6 +8,7 @@ import com.cashvane.backend.user.User;
 import com.cashvane.backend.user.UserRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import com.cashvane.backend.security.JwtService;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -17,9 +18,12 @@ public class AuthController {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    public AuthController(OrganizationRepository organizationRepository, UserRepository userRepository) {
+    private final JwtService jwtService;
+
+    public AuthController(OrganizationRepository organizationRepository, UserRepository userRepository, JwtService jwtService) {
         this.organizationRepository = organizationRepository;
         this.userRepository = userRepository;
+        this.jwtService = jwtService;
     }
 
     @PostMapping("/signup")
@@ -35,5 +39,22 @@ public class AuthController {
         user.setOrganization(organization);
 
         return userRepository.save(user);
+    }
+
+    @PostMapping("/login")
+    public String login(@RequestBody LoginRequest request) {
+        User user = userRepository.findByEmail(request.email)
+                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+
+        if (!passwordEncoder.matches(request.password, user.getPasswordHash())) {
+            throw new RuntimeException("Invalid email or password");
+        }
+
+        return jwtService.generateToken(user.getId().toString(), user.getOrganization().getId().toString());
+    }
+
+    public static class LoginRequest {
+        public String email;
+        public String password;
     }
 }
