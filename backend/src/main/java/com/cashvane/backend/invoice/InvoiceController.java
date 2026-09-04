@@ -60,4 +60,22 @@ public class InvoiceController {
         UUID orgId = currentOrgId(request);
         return invoiceRepository.findByOrganizationId(orgId);
     }
+
+    @PatchMapping("/{id}/status")
+    public Invoice updateStatus(@PathVariable UUID id, @RequestBody UpdateStatusRequest request, HttpServletRequest httpRequest) {
+        UUID orgId = currentOrgId(httpRequest);
+
+        Invoice invoice = invoiceRepository.findById(id).orElseThrow();
+
+        if (!invoice.getOrganization().getId().equals(orgId)) {
+            throw new RuntimeException("Not found");
+        }
+
+        invoice.setStatus(request.status);
+        return invoiceRepository.save(invoice);
+    }
+
+    public static class UpdateStatusRequest {
+        public InvoiceStatus status;
+    }
 }
