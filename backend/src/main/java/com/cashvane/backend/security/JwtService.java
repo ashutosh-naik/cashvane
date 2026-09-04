@@ -4,9 +4,10 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
 import javax.crypto.SecretKey;
 import java.util.Date;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
 
 @Service
 public class JwtService {
@@ -26,5 +27,13 @@ public class JwtService {
                 .expiration(new Date(System.currentTimeMillis() + EXPIRATION_MS))
                 .signWith(key)
                 .compact();
+    }
+
+    public Claims validateAndGetClaims(String token) {
+        Jws<Claims> jws = Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token);
+        return jws.getPayload();
     }
 }
