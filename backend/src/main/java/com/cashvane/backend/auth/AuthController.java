@@ -9,6 +9,9 @@ import com.cashvane.backend.user.UserRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import com.cashvane.backend.security.JwtService;
+import com.cashvane.backend.user.InviteUserRequest;
+import com.cashvane.backend.security.AccessDeniedException;
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -56,5 +59,24 @@ public class AuthController {
     public static class LoginRequest {
         public String email;
         public String password;
+    }
+
+    @PostMapping("/invite")
+    public User inviteUser(@RequestBody InviteUserRequest request, HttpServletRequest httpRequest) {
+        String role = (String) httpRequest.getAttribute("role");
+        if (!role.equals("ADMIN")) {
+            throw new AccessDeniedException("Only admins can invite team members");
+        }
+
+        String organizationId = (String) httpRequest.getAttribute("organizationId");
+        Organization organization = organizationRepository.findById(java.util.UUID.fromString(organizationId)).orElseThrow();
+
+        User user = new User();
+        user.setEmail(request.getEmail());
+        user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        user.setRole(request.getRole());
+        user.setOrganization(organization);
+
+        return userRepository.save(user);
     }
 }
