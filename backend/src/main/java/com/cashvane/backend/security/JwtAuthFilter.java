@@ -48,6 +48,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             Claims claims = jwtService.validateAndGetClaims(token);
             request.setAttribute("userId", claims.getSubject());
             request.setAttribute("organizationId", claims.get("organizationId", String.class));
+            request.setAttribute("role", claims.get("role", String.class));
         } catch (Exception e) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("Invalid or expired token");

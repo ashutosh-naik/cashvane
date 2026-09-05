@@ -50,7 +50,7 @@ public class AuthController {
             throw new RuntimeException("Invalid email or password");
         }
 
-        return jwtService.generateToken(user.getId().toString(), user.getOrganization().getId().toString());
+        return jwtService.generateToken(user.getId().toString(), user.getOrganization().getId().toString(), user.getRole().name());
     }
 
     public static class LoginRequest {

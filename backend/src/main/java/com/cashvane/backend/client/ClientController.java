@@ -24,6 +24,11 @@ public class ClientController {
 
     @PostMapping
     public Client createClient(@RequestBody Client client, HttpServletRequest request) {
+        String role = (String) request.getAttribute("role");
+        if (role.equals("VIEWER")) {
+            throw new com.cashvane.backend.security.AccessDeniedException("Viewers cannot create clients");
+        }
+
         UUID orgId = currentOrgId(request);
         client.setOrganization(organizationRepository.findById(orgId).orElseThrow());
         return clientRepository.save(client);
